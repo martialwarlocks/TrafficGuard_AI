@@ -1,0 +1,62 @@
+@import "tailwindcss";
+
+@theme {
+  --color-bg: #0B1020;
+  --color-card: #121A2F;
+  --color-primary: #4F8CFF;
+  --color-success: #00C853;
+  --color-warning: #FFB300;
+  --color-danger: #FF5252;
+  --color-text: #F5F7FA;
+  --color-muted: #94A3B8;
+  --color-border: #1E293B;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: #0B1020;
+  color: #F5F7FA;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #0B1020;
+}
+::-webkit-scrollbar-thumb {
+  background: #1E293B;
+  border-radius: 3px;
+}
+
+.glass {
+  background: rgba(18, 26, 47, 0.7);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(79, 140, 255, 0.1);
+}
+
+.glow-primary {
+  box-shadow: 0 0 20px rgba(79, 140, 255, 0.15);
+}
+
+.gradient-text {
+  background: linear-gradient(135deg, #4F8CFF, #00C853);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 5px rgba(79, 140, 255, 0.3); }
+  50% { box-shadow: 0 0 20px rgba(79, 140, 255, 0.6); }
+}
+
+.pulse-alert {
+  animation: pulse-glow 2s ease-in-out infinite;
+}

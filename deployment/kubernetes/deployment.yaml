@@ -1,0 +1,134 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: trafficguard
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: trafficguard-backend
+  namespace: trafficguard
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: trafficguard-backend
+  template:
+    metadata:
+      labels:
+        app: trafficguard-backend
+    spec:
+      containers:
+        - name: backend
+          image: trafficguard/backend:latest
+          ports:
+            - containerPort: 8000
+          envFrom:
+            - secretRef:
+                name: trafficguard-secrets
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "250m"
+            limits:
+              memory: "2Gi"
+              cpu: "1000m"
+          livenessProbe:
+            httpGet:
+              path: /api/v1/health
+              port: 8000
+            initialDelaySeconds: 30
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: trafficguard-backend
+  namespace: trafficguard
+spec:
+  selector:
+    app: trafficguard-backend
+  ports:
+    - port: 8000
+      targetPort: 8000
+  type: ClusterIP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: trafficguard-frontend
+  namespace: trafficguard
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: trafficguard-frontend
+  template:
+    metadata:
+      labels:
+        app: trafficguard-frontend
+    spec:
+      containers:
+        - name: frontend
+          image: trafficguard/frontend:latest
+          ports:
+            - containerPort: 5173
+          env:
+            - name: VITE_API_URL
+              value: "http://trafficguard-backend:8000"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: trafficguard-frontend
+  namespace: trafficguard
+spec:
+  selector:
+    app: trafficguard-frontend
+  ports:
+    - port: 80
+      targetPort: 5173
+  type: LoadBalancer
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: trafficguard-celery
+  namespace: trafficguard
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: trafficguard-celery
+  template:
+    metadata:
+      labels:
+        app: trafficguard-celery
+    spec:
+      containers:
+        - name: celery
+          image: trafficguard/backend:latest
+          command: ["celery", "-A", "backend.app.celery_app", "worker", "--loglevel=info"]
+          envFrom:
+            - secretRef:
+                name: trafficguard-secrets
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: trafficguard-backend-hpa
+  namespace: trafficguard
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: trafficguard-backend
+  minReplicas: 2
+  maxReplicas: 10
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
