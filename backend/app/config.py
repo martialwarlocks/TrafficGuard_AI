@@ -35,6 +35,10 @@ class Settings(BaseSettings):
     auto_process_threshold: float = 0.85
     human_review_threshold: float = 0.60
 
+    gemini_api_key: str = ""
+    gemini_verify_enabled: bool = True
+    gemini_primary_enabled: bool = True
+
     cors_origins: str = "http://localhost:5173,http://localhost:3000"
 
     @property

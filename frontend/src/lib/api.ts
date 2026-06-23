@@ -1,4 +1,4 @@
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+const API_URL = import.meta.env.VITE_API_URL ?? ''
 
 class ApiClient {
   private baseUrl: string
@@ -25,9 +25,20 @@ class ApiClient {
     }
 
     const res = await fetch(`${this.baseUrl}${path}`, { ...options, headers })
+
+    if (res.status === 401) {
+      this.setToken(null)
+      if (!window.location.pathname.startsWith('/login')) {
+        window.location.href = '/login?expired=1'
+      }
+      throw new Error('Session expired. Please log in again.')
+    }
+
     if (!res.ok) {
       const err = await res.json().catch(() => ({ detail: res.statusText }))
-      throw new Error(err.detail || 'Request failed')
+      const detail = err.detail
+      const message = typeof detail === 'string' ? detail : Array.isArray(detail) ? detail[0]?.msg : 'Request failed'
+      throw new Error(message || 'Request failed')
     }
     return res.json()
   }
@@ -88,10 +99,11 @@ class ApiClient {
     return this.request<ViolationDetail>(`/api/v1/violations/${id}/detail`)
   }
 
-  analyzeImage(file: File, cameraId?: number) {
+  analyzeImage(file: File, cameraId?: number, liveMode = false) {
     const form = new FormData()
     form.append('file', file)
     if (cameraId) form.append('camera_id', String(cameraId))
+    form.append('live_mode', liveMode ? 'true' : 'false')
     return this.request<AnalyzeResult>('/api/v1/analyze', { method: 'POST', body: form })
   }
 
@@ -193,6 +205,9 @@ export interface AnalyzeResult {
   ocr_result?: { text: string; confidence: number; alternatives?: { text: string; confidence: number }[] }
   traffic_signal?: { state: string; confidence: number }
   scene_context?: { crosswalk_detected: boolean; is_intersection: boolean }
+  annotated_image_b64?: string
+  fine_amount?: number
+  legal_section?: string
 }
 
 export interface UserSummary {
@@ -206,6 +221,8 @@ export interface UserSummary {
   violation_label?: string
   routing_decision: string
   signal_state?: string
+  fine_inr?: number
+  legal_section?: string
 }
 
 export interface ViolationDetail extends Violation {

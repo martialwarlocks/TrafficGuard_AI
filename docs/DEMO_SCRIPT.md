@@ -5,13 +5,15 @@
 1. `docker compose up -d` — start all services
 2. Open http://localhost:5173 — landing page
 3. Login: `admin@trafficguard.ai` / `admin123`
-4. Prepare a traffic violation test image (motorcycle without helmet)
+4. Prepare a **red-light violation photo** (best accuracy) + backup helmet photo
+5. Set `MC_DROPOUT_PASSES=5` in `.env` for faster live webcam
+6. Pre-upload 3–5 images so dashboard trends are populated
 
 ---
 
-## Demo Flow (5 minutes)
+## Demo Flow (3 minutes — submission version)
 
-### Act 1: The Problem (30 seconds)
+### Act 1: The Problem (20 seconds)
 > "Current traffic AI systems generate a confidence score and enforce anyway. They can't distinguish between a reliable detection and a legally risky borderline case. One false positive erodes public trust for years."
 
 ### Act 2: Landing Page (30 seconds)
@@ -25,16 +27,18 @@
 - Show system health and recent activity feed
 - "This is a live command center, not a static dashboard."
 
-### Act 4: Live Monitoring — THE WOW MOMENT (90 seconds)
-- Navigate to **Live Monitoring**
-- Upload a test image with a traffic violation
-- Watch real YOLOv8 inference run (actual model, not mocked)
+### Act 4: Live Webcam — THE WOW MOMENT (90 seconds) ⭐
+- Navigate to **Webcam Test** (`/live-test`)
+- Click **Start Live Test** — allow camera access
+- Hold red-light violation photo up to webcam for 3 seconds
 - Point out:
-  - Animated detection bounding boxes
-  - Confidence gauge (e.g., 72%)
-  - Uncertainty gauge (e.g., 28%)
-  - **AI Copilot panel** explaining WHY: "Helmet partially occluded", "Low image quality"
-  - Routing decision: **HUMAN REVIEW** (because 72% is in the 60-84% band)
+  - Real-time frame analysis every 2.5s (not pre-recorded)
+  - Annotated overlay with **SIGNAL: RED** badge
+  - Confidence + uncertainty gauges
+  - Violation log updating live
+- Say: *"When confidence is borderline, we route to human review — we never auto-fine uncertain cases."*
+
+**Backup:** If webcam fails, use **Live Monitoring** → upload same photo instead.
 
 ### Act 5: Human Review Workflow (60 seconds)
 - Navigate to **Human Review**

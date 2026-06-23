@@ -1,7 +1,7 @@
 from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, desc
+from sqlalchemy import select, desc, case
 from backend.app.database import get_db
 from backend.app.models import Violation, Review, User, RoutingDecision
 from backend.app.schemas import ReviewCreate, ReviewResponse, ViolationResponse
@@ -13,14 +13,18 @@ router = APIRouter(tags=["Review"])
 
 @router.get("/review-queue", response_model=list[ViolationResponse])
 async def get_review_queue(
-    current_user: User = Depends(require_roles("Admin", "Supervisor", "Officer")),
+    current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
+    """Return human-review cases — pending first, then recently flagged."""
+    pending_first = case(
+        (Violation.status.in_(["pending", "human_review", "escalated"]), 0),
+        else_=1,
+    )
     result = await db.execute(
         select(Violation)
         .where(Violation.routing_decision == RoutingDecision.HUMAN_REVIEW)
-        .where(Violation.status == "pending")
-        .order_by(desc(Violation.detected_at))
+        .order_by(pending_first, desc(Violation.detected_at))
         .limit(50)
     )
     return result.scalars().all()

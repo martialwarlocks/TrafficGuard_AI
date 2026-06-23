@@ -5,6 +5,7 @@ import { motion } from 'framer-motion'
 import { Upload, Camera, Brain, ClipboardPaste, CheckCircle, AlertTriangle, ArrowRight } from 'lucide-react'
 import { Card, Badge, Button } from '@/components/ui'
 import { ConfidenceGauge, RadarChart } from '@/components/Gauge'
+import { EnforcementCard } from '@/components/EnforcementCard'
 import { api, type AnalyzeResult } from '@/lib/api'
 import { useAppStore } from '@/store'
 
@@ -31,6 +32,7 @@ export function MonitoringPage() {
       queryClient.invalidateQueries({ queryKey: ['review-queue'] })
       queryClient.invalidateQueries({ queryKey: ['violations'] })
       queryClient.invalidateQueries({ queryKey: ['dashboard'] })
+      queryClient.invalidateQueries({ queryKey: ['analytics'] })
 
       if (result.routing_decision === 'human_review') {
         addAlert({
@@ -67,19 +69,16 @@ export function MonitoringPage() {
 
   return (
     <div className="space-y-4" onPaste={handlePaste}>
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
           <h1 className="text-2xl font-bold">Live Monitoring</h1>
-          <p className="text-muted text-sm">Upload or paste an image — results appear in plain English</p>
+          <p className="text-muted text-sm">AI reads plates, detects violations, and calculates MV Act fines</p>
         </div>
         <div className="flex gap-2">
           <input ref={fileRef} type="file" accept="image/*" className="hidden"
             onChange={(e) => e.target.files?.[0] && handleUpload(e.target.files[0])} />
           <Button variant="secondary" onClick={() => fileRef.current?.click()} disabled={analyzing}>
-            <Upload className="w-4 h-4 mr-2" /> Upload
-          </Button>
-          <Button disabled={analyzing}>
-            <ClipboardPaste className="w-4 h-4 mr-2" /> Paste (Ctrl+V)
+            <Upload className="w-4 h-4 mr-2" /> Upload Image
           </Button>
         </div>
       </div>
@@ -89,12 +88,11 @@ export function MonitoringPage() {
       )}
 
       <div className="grid lg:grid-cols-12 gap-4">
-        {/* Camera Grid */}
         <div className="lg:col-span-3 space-y-3 overflow-y-auto max-h-[calc(100vh-160px)]">
-          <h3 className="text-sm font-semibold text-muted">Cameras</h3>
+          <h3 className="text-sm font-semibold text-muted uppercase tracking-wide">Cameras</h3>
           {(cameras || []).map((cam) => (
-            <div key={cam.id} className="rounded-lg bg-card border border-border p-3">
-              <div className="aspect-video bg-bg rounded-md flex items-center justify-center mb-2 relative">
+            <div key={cam.id} className="rounded-xl bg-card border border-border p-3">
+              <div className="aspect-video bg-bg rounded-lg flex items-center justify-center mb-2 relative">
                 <Camera className="w-8 h-8 text-muted" />
                 <Badge variant={cam.status === 'online' ? 'success' : 'danger'} className="absolute top-2 right-2">
                   {cam.status}
@@ -106,15 +104,15 @@ export function MonitoringPage() {
           ))}
         </div>
 
-        {/* Main feed */}
         <div className="lg:col-span-6 space-y-4">
           <Card className="p-0 overflow-hidden">
             <div className="aspect-video bg-bg relative flex items-center justify-center">
               {analyzing && (
-                <div className="absolute inset-0 bg-bg/80 flex items-center justify-center z-10">
+                <div className="absolute inset-0 bg-bg/90 flex items-center justify-center z-10">
                   <div className="text-center">
                     <div className="w-10 h-10 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-                    <p className="text-sm text-muted">Analyzing image...</p>
+                    <p className="text-sm font-medium">Analysing image…</p>
+                    <p className="text-xs text-muted mt-1">Reading plate · Detecting violation · Calculating fine</p>
                   </div>
                 </div>
               )}
@@ -124,62 +122,49 @@ export function MonitoringPage() {
                 <div className="text-center text-muted p-8">
                   <Camera className="w-16 h-16 mx-auto mb-4 opacity-30" />
                   <p className="font-medium">No image yet</p>
-                  <p className="text-xs mt-2">Upload a photo or paste from clipboard (Ctrl+V / Cmd+V)</p>
+                  <p className="text-xs mt-2">Upload a traffic photo or paste from clipboard (Ctrl+V)</p>
                 </div>
               )}
             </div>
           </Card>
 
-          {/* User-friendly verdict */}
-          {analysis && summary && (
+          {analysis && (
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
               <Card className="border-primary/20">
-                <div className="flex items-start gap-3 mb-4">
-                  {analysis.routing_decision === 'auto_process' ? (
-                    <CheckCircle className="w-6 h-6 text-success shrink-0 mt-0.5" />
-                  ) : analysis.routing_decision === 'human_review' ? (
-                    <AlertTriangle className="w-6 h-6 text-warning shrink-0 mt-0.5" />
-                  ) : (
-                    <AlertTriangle className="w-6 h-6 text-muted shrink-0 mt-0.5" />
-                  )}
-                  <div>
-                    <h2 className="text-lg font-bold">
-                      {summary.violation_label || summary.headline}
-                    </h2>
-                    <p className="text-sm text-muted mt-1">{summary.verdict.replace(/\*\*/g, '')}</p>
-                    {analysis.traffic_signal?.state && analysis.traffic_signal.state !== 'unknown' && (
-                      <p className="text-xs mt-2">
-                        Traffic signal: <span className={analysis.traffic_signal.state === 'red' ? 'text-danger' : 'text-success'}>
-                          {analysis.traffic_signal.state.toUpperCase()}
-                        </span> ({(analysis.traffic_signal.confidence * 100).toFixed(0)}%)
-                      </p>
-                    )}
-                  </div>
-                </div>
+                <EnforcementCard analysis={analysis} />
 
-                {summary.found_items.length > 0 && (
+                {summary && (
+                  <div className="flex items-start gap-3 mb-4">
+                    {analysis.routing_decision === 'auto_process' ? (
+                      <CheckCircle className="w-6 h-6 text-success shrink-0 mt-0.5" />
+                    ) : analysis.routing_decision === 'human_review' ? (
+                      <AlertTriangle className="w-6 h-6 text-warning shrink-0 mt-0.5" />
+                    ) : (
+                      <AlertTriangle className="w-6 h-6 text-muted shrink-0 mt-0.5" />
+                    )}
+                    <div>
+                      <h2 className="text-lg font-bold">{summary.headline}</h2>
+                      <p className="text-sm text-muted mt-1 leading-relaxed">{summary.verdict}</p>
+                    </div>
+                  </div>
+                )}
+
+                {summary && summary.found_items.length > 0 && (
                   <div className="mb-4">
-                    <p className="text-xs text-muted mb-2 uppercase tracking-wide">What we found</p>
+                    <p className="text-xs text-muted mb-2 uppercase tracking-wide">Scene analysis</p>
                     <div className="flex flex-wrap gap-2">
                       {summary.found_items.map((item) => (
                         <span key={item.label} className="px-3 py-1.5 rounded-full bg-bg text-sm border border-border">
-                          {item.count}× {item.label} <span className="text-muted">({(item.confidence * 100).toFixed(0)}%)</span>
+                          {item.count}× {item.label}
                         </span>
                       ))}
                     </div>
                   </div>
                 )}
 
-                {analysis.ocr_result?.text && (
-                  <div className="mb-4 p-3 rounded-lg bg-bg">
-                    <p className="text-xs text-muted">License plate</p>
-                    <p className="font-mono font-bold text-lg">{analysis.ocr_result.text}</p>
-                  </div>
-                )}
-
                 <div className="p-3 rounded-lg bg-bg border-l-2 border-primary mb-4">
-                  <p className="text-xs text-muted mb-1">What happens next</p>
-                  <p className="text-sm">{summary.next_step}</p>
+                  <p className="text-xs text-muted mb-1 uppercase tracking-wide">Next step</p>
+                  <p className="text-sm">{summary?.next_step}</p>
                 </div>
 
                 <div className="flex items-center gap-3 flex-wrap">
@@ -190,7 +175,7 @@ export function MonitoringPage() {
                     {analysis.routing_decision.replace(/_/g, ' ').toUpperCase()}
                   </Badge>
                   <span className="text-xs text-muted">{analysis.processing_time_ms.toFixed(0)}ms</span>
-                  {analysis.violation_id && analysis.routing_decision === 'human_review' && (
+                  {analysis.violation_id && (
                     <Link to="/review">
                       <Button size="sm">
                         Open in Review Queue <ArrowRight className="w-3 h-3 ml-1" />
@@ -203,7 +188,6 @@ export function MonitoringPage() {
           )}
         </div>
 
-        {/* AI Copilot */}
         <div className="lg:col-span-3 space-y-4">
           <Card>
             <div className="flex items-center gap-2 mb-4">
@@ -217,19 +201,18 @@ export function MonitoringPage() {
                   <ConfidenceGauge value={analysis.uncertainty} label="Uncertainty" type="uncertainty" size={90} />
                 </div>
                 <div>
-                  <p className="text-xs text-muted mb-2">Why this decision?</p>
+                  <p className="text-xs text-muted mb-2 uppercase tracking-wide">Reasoning</p>
                   <div className="space-y-2">
                     {analysis.explanation.reasons.map((r, i) => (
-                      <div key={i} className="p-2 rounded-lg bg-bg text-sm border-l-2 border-primary">{r}</div>
+                      <div key={i} className="p-2 rounded-lg bg-bg text-sm border-l-2 border-primary leading-relaxed">{r}</div>
                     ))}
                   </div>
                 </div>
                 <RadarChart confidence={analysis.confidence} uncertainty={analysis.uncertainty} />
-                <p className="text-xs text-muted">Image quality: {(analysis.quality_score * 100).toFixed(0)}%</p>
               </div>
             ) : (
-              <p className="text-sm text-muted">
-                Upload or paste an image. The copilot will explain the decision in plain language.
+              <p className="text-sm text-muted leading-relaxed">
+                Upload a traffic image. The system will read the plate, identify the violation, and calculate the Indian MV Act fine.
               </p>
             )}
           </Card>

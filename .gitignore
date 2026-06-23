@@ -32,6 +32,8 @@ ml/models/*.engine
 datasets/raw/
 datasets/processed/
 *.weights
+yolov8n.pt
+yolov8*.pt
 
 # Logs
 logs/

@@ -10,6 +10,7 @@ from ml.pipeline.ocr import PlateOCR
 from ml.pipeline.uncertainty import UncertaintyEstimator
 from ml.pipeline.explainability import ExplainabilityEngine
 from ml.pipeline.traffic_signal import TrafficSignalDetector
+from ml.pipeline.coco_traffic_light import COCOTrafficLightDetector
 from ml.pipeline.scene_analysis import SceneAnalyzer
 from ml.pipeline.summary import generate_user_summary
 from ml.violations.catalog import VIOLATION_PRIORITY
@@ -33,6 +34,7 @@ class TrafficAnalyzer:
         self.uncertainty_estimator = UncertaintyEstimator(n_passes=mc_passes)
         self.explainer = ExplainabilityEngine()
         self.signal_detector = TrafficSignalDetector()
+        self.coco_tl_detector = COCOTrafficLightDetector()
         self.scene_analyzer = SceneAnalyzer()
         self.mc_passes = mc_passes
 
@@ -51,12 +53,24 @@ class TrafficAnalyzer:
         det_dicts = [d.to_dict() for d in detections]
 
         # Traffic signal + scene context (critical for red light / stop line)
-        signal = self.signal_detector.detect(enhanced)
+        tl_boxes = self.coco_tl_detector.detect(enhanced)
+        signal_dets = [
+            d for d in det_dicts
+            if d.get("class_name") in (
+                "traffic_light_red", "traffic_light_green", "traffic_light_yellow",
+                "red", "green", "yellow",
+            )
+        ]
+        signal = self.signal_detector.detect(
+            enhanced, traffic_light_boxes=tl_boxes, yolo_signal_detections=signal_dets
+        )
         scene = self.scene_analyzer.analyze(enhanced, det_dicts)
         scene_dict = {
             **scene.to_dict(),
             "vehicles_past_stop_line": scene.vehicles_past_stop_line,
             "vehicles_in_crosswalk": scene.vehicles_in_crosswalk,
+            "image_height": enhanced.shape[0],
+            "image_width": enhanced.shape[1],
         }
         signal_dict = signal.to_dict()
 
@@ -181,8 +195,15 @@ class TrafficAnalyzer:
             if result and result.detected:
                 found.append(result.to_dict())
 
-        # Suppress incompatible lower-priority violations in signal scenarios
+        det_classes = {d.get("class_name") for d in det_dicts}
         found_types = {v["violation_type"] for v in found}
+
+        # Explicit detections beat heuristic stop_line / parking
+        if "no_helmet" in det_classes:
+            found = [v for v in found if v["violation_type"] not in ("stop_line", "seatbelt", "parking")]
+        if "no_seatbelt" in det_classes:
+            found = [v for v in found if v["violation_type"] not in ("stop_line", "parking")]
+
         if "red_light" in found_types:
             found = [v for v in found if v["violation_type"] not in ("seatbelt", "helmet", "parking")]
         if "stop_line" in found_types and "red_light" not in found_types:

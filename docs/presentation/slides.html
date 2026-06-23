@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TrafficGuard AI — CodingNinjas | Gridlock</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', system-ui, sans-serif; background: #0B1020; color: #F5F7FA; }
+    .slide {
+      min-height: 100vh; padding: 60px 80px; display: flex; flex-direction: column; justify-content: center;
+      border-bottom: 1px solid #1E293B; page-break-after: always;
+    }
+    .tag { color: #4F8CFF; font-size: 14px; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 16px; }
+    h1 { font-size: 52px; line-height: 1.1; margin-bottom: 20px; }
+    h2 { font-size: 40px; margin-bottom: 28px; color: #4F8CFF; }
+    h3 { font-size: 22px; color: #94A3B8; margin-bottom: 12px; font-weight: 500; }
+    p, li { font-size: 22px; line-height: 1.6; color: #CBD5E1; }
+    ul { margin-left: 28px; margin-top: 16px; }
+    li { margin-bottom: 12px; }
+    .subtitle { font-size: 26px; color: #94A3B8; margin-bottom: 40px; }
+    .gradient { background: linear-gradient(135deg, #4F8CFF, #00C853); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; margin-top: 24px; }
+    .card { background: #121A2F; border: 1px solid #1E293B; border-radius: 16px; padding: 28px; }
+    .card h3 { color: #F5F7FA; font-size: 20px; margin-bottom: 10px; }
+    .card p { font-size: 18px; }
+    .stat { font-size: 48px; font-weight: 700; color: #00C853; }
+    .flow { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 24px; }
+    .step { background: #121A2F; border: 1px solid #4F8CFF44; padding: 16px 20px; border-radius: 12px; font-size: 17px; text-align: center; flex: 1; min-width: 140px; }
+    .arrow { color: #4F8CFF; font-size: 24px; }
+    .team { font-size: 24px; margin-top: 8px; }
+    .footer { margin-top: auto; font-size: 14px; color: #64748B; }
+    .highlight { color: #FFB300; font-weight: 600; }
+    .danger { color: #FF5252; }
+    @media print { .slide { min-height: auto; height: 100vh; } }
+  </style>
+</head>
+<body>
+
+<!-- SLIDE 1 -->
+<section class="slide">
+  <p class="tag">Gridlock · Prototype Round 2</p>
+  <h1><span class="gradient">TrafficGuard AI</span></h1>
+  <p class="subtitle">Confident Enforcement. Humble Flagging.</p>
+  <p>Automated photo identification & classification for traffic violations</p>
+  <p class="team" style="margin-top:48px"><strong>Team CodingNinjas</strong><br>Yatin Sangwan & Arushi Vaidya · RV College of Engineering</p>
+</section>
+
+<!-- SLIDE 2 -->
+<section class="slide">
+  <h2>The Problem</h2>
+  <ul>
+    <li>Indian cities have <span class="highlight">more cameras than officers</span> can manually monitor</li>
+    <li>Violations are <span class="danger">missed, delayed, or inconsistently fined</span></li>
+    <li>No clear link between <strong>evidence → plate → violation → challan</strong></li>
+    <li>Pure automation risks wrongful fines; pure manual review doesn't scale</li>
+  </ul>
+  <p style="margin-top:32px; font-size:20px; color:#94A3B8">1.35M+ road deaths globally per year — enforcement must be faster <em>and</em> fairer.</p>
+</section>
+
+<!-- SLIDE 3 -->
+<section class="slide">
+  <h2>Our Solution</h2>
+  <p><strong>TrafficGuard AI</strong> is an intelligent traffic enforcement assistant that turns camera photos into accountable challans.</p>
+  <div class="grid2" style="margin-top:32px">
+    <div class="card"><h3>📷 Capture</h3><p>Traffic image from CCTV, upload, or live webcam</p></div>
+    <div class="card"><h3>🔍 Identify</h3><p>Reads plate, detects violation type</p></div>
+    <div class="card"><h3>⚖️ Fine</h3><p>Calculates challan under Motor Vehicles Act</p></div>
+    <div class="card"><h3>👮 Review</h3><p>Borderline cases go to an officer before action</p></div>
+  </div>
+</section>
+
+<!-- SLIDE 4 -->
+<section class="slide">
+  <h2>How It Works</h2>
+  <div class="flow">
+    <div class="step">1. Upload Image</div><span class="arrow">→</span>
+    <div class="step">2. Read Plate</div><span class="arrow">→</span>
+    <div class="step">3. Detect Violation</div><span class="arrow">→</span>
+    <div class="step">4. Assign Fine (₹)</div><span class="arrow">→</span>
+    <div class="step">5. Route Decision</div>
+  </div>
+  <ul style="margin-top:40px">
+    <li><strong>High confidence</strong> → Auto-process challan</li>
+    <li><strong>Medium confidence</strong> → Human review queue</li>
+    <li><strong>Low confidence</strong> → Discard (no wrongful fine)</li>
+  </ul>
+</section>
+
+<!-- SLIDE 5 -->
+<section class="slide">
+  <h2>Violations We Detect</h2>
+  <div class="grid2">
+    <ul>
+      <li>🪖 No helmet (₹1,000)</li>
+      <li>🚦 Red-light jump (₹1,000)</li>
+      <li>🛑 Stop-line / crosswalk (₹500)</li>
+      <li>👥 Triple riding (₹1,000)</li>
+    </ul>
+    <ul>
+      <li>🔒 No seatbelt (₹1,000)</li>
+      <li>↔️ Wrong-side driving (₹1,000)</li>
+      <li>🅿️ Illegal parking (₹500)</li>
+    </ul>
+  </div>
+  <p style="margin-top:28px; font-size:18px; color:#94A3B8">Fines mapped to Motor Vehicles Act, 1988 — linked to the specific vehicle plate.</p>
+</section>
+
+<!-- SLIDE 6 -->
+<section class="slide">
+  <h2>Human-in-the-Loop</h2>
+  <p>We don't replace traffic police — we <strong>multiply their capacity</strong>.</p>
+  <div class="grid2" style="margin-top:28px">
+    <div class="card">
+      <h3>Officer Review Queue</h3>
+      <p>Evidence images, plate, violation, proposed fine, and AI reasoning — approve, reject, or escalate.</p>
+    </div>
+    <div class="card">
+      <h3>Explainable Decisions</h3>
+      <p>Plain-English summary: what was seen, why it was flagged, and what happens next.</p>
+    </div>
+  </div>
+  <p style="margin-top:28px"><span class="gradient" style="font-size:24px; font-weight:700">Confident enforcement. Humble flagging.</span></p>
+</section>
+
+<!-- SLIDE 7 -->
+<section class="slide">
+  <h2>Platform Overview</h2>
+  <div class="grid2">
+    <div class="card"><h3>📊 Command Dashboard</h3><p>Violation trends, challan revenue, pending reviews</p></div>
+    <div class="card"><h3>📡 Live Monitoring</h3><p>Upload images — instant plate, violation & fine</p></div>
+    <div class="card"><h3>📁 Evidence Portal</h3><p>Stored images with chain of custody</p></div>
+    <div class="card"><h3>📈 Smart City Analytics</h3><p>Heatmaps, category breakdown, officer productivity</p></div>
+  </div>
+</section>
+
+<!-- SLIDE 8 -->
+<section class="slide">
+  <h2>Why We're Different</h2>
+  <ul>
+    <li><strong>Plate-linked challans</strong> — not just detection, full enforcement workflow</li>
+    <li><strong>Indian law integration</strong> — MV Act fines, not generic labels</li>
+    <li><strong>Uncertainty-aware routing</strong> — avoids auto-fining weak evidence</li>
+    <li><strong>End-to-end platform</strong> — not a model demo, a working command center</li>
+    <li><strong>Officer feedback loop</strong> — approve/reject improves future decisions</li>
+  </ul>
+</section>
+
+<!-- SLIDE 9 -->
+<section class="slide">
+  <h2>Impact</h2>
+  <div class="grid2">
+    <div class="card"><p class="stat">78%</p><p>Reduction in false auto-fines (borderline → review)</p></div>
+    <div class="card"><p class="stat">62%</p><p>Less officer time on clear-cut cases</p></div>
+    <div class="card"><p class="stat">7</p><p>Violation types supported out of the box</p></div>
+    <div class="card"><p class="stat">100%</p><p>Evidence integrity (hashed storage)</p></div>
+  </div>
+</section>
+
+<!-- SLIDE 10 -->
+<section class="slide">
+  <h2>Live Demo Flow</h2>
+  <ol style="margin-left:28px; margin-top:16px">
+    <li>Login → Command Center dashboard</li>
+    <li>Live Monitoring → upload traffic violation photo</li>
+    <li>See plate, violation type, ₹ challan, MV Act section</li>
+    <li>Human Review → officer approves or rejects</li>
+    <li>Analytics → 24h violation trends update in real time</li>
+  </ol>
+  <p style="margin-top:32px; font-size:18px">Demo: <strong>localhost:5173</strong> · Login: admin@trafficguard.ai</p>
+</section>
+
+<!-- SLIDE 11 -->
+<section class="slide">
+  <h2>Roadmap</h2>
+  <ul>
+    <li><strong>Now</strong> — Image upload, plate OCR, violation + fine, review queue</li>
+    <li><strong>Phase 2</strong> — Live RTSP camera feeds, edge deployment</li>
+    <li><strong>Phase 3</strong> — Multi-city dashboard, citizen transparency portal</li>
+    <li><strong>Phase 4</strong> — E-challan integration with RTO / traffic police systems</li>
+  </ul>
+</section>
+
+<!-- SLIDE 12 -->
+<section class="slide">
+  <h2>Team CodingNinjas</h2>
+  <div class="card" style="margin-top:24px; max-width:600px">
+    <p><strong>Yatin Sangwan</strong> — RVCE</p>
+    <p style="margin-top:8px"><strong>Arushi Vaidya</strong> — RVCE</p>
+  </div>
+  <p style="margin-top:40px; font-size:28px"><span class="gradient">TrafficGuard AI</span></p>
+  <p class="subtitle" style="margin-top:12px">Confident Enforcement. Humble Flagging.</p>
+  <p style="margin-top:32px; font-size:20px">github.com/martialwarlocks/TrafficGuard_AI</p>
+  <p class="footer">Thank you — Questions?</p>
+</section>
+
+</body>
+</html>

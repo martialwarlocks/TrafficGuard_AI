@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Card, Badge } from '@/components/ui'
+import { TrendChart } from '@/components/TrendChart'
 import { api } from '@/lib/api'
 import {
   BarChart, Bar, LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer,
@@ -40,16 +41,11 @@ export function AnalyticsPage() {
 
       <Card>
         <h3 className="font-semibold mb-4">Violation Trends</h3>
-        <ResponsiveContainer width="100%" height={300}>
-          <AreaChart data={trendData || []}>
-            <XAxis dataKey="label" stroke="#94A3B8" fontSize={11} />
-            <YAxis stroke="#94A3B8" fontSize={11} />
-            <Tooltip contentStyle={{ background: '#121A2F', border: '1px solid #1E293B', borderRadius: 8 }} />
-            <Area type="monotone" dataKey="count" stroke="#4F8CFF" fill="#4F8CFF20" />
-            <Area type="monotone" dataKey="auto" stroke="#00C853" fill="#00C85320" />
-            <Area type="monotone" dataKey="review" stroke="#FFB300" fill="#FFB30020" />
-          </AreaChart>
-        </ResponsiveContainer>
+        <TrendChart
+          data={trendData || []}
+          height={300}
+          emptyMessage="No data for this period — violations appear here after analysis"
+        />
       </Card>
 
       <div className="grid lg:grid-cols-2 gap-6">

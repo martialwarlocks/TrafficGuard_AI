@@ -57,11 +57,10 @@ class SceneAnalyzer:
                 if front_y >= cw_start:
                     vehicles_past_stop_line.append(v)
             else:
-                # Heuristic: lower half of frame = intersection area for front-facing CCTV
-                if front_y >= stop_line_y:
+                # No crosswalk: only mark past stop line if vehicle is clearly in lower road
+                if front_y >= stop_line_y and cy >= h * 0.58:
                     vehicles_past_stop_line.append(v)
-                if cy >= h * 0.45 and cy <= h * 0.75:
-                    vehicles_in_crosswalk.append(v)
+                # Do NOT populate vehicles_in_crosswalk without detected crosswalk
 
         is_intersection = crosswalk_detected or len(vehicles) >= 2
 
@@ -91,14 +90,18 @@ class SceneAnalyzer:
         threshold = np.mean(row_sums) + np.std(row_sums) * 0.5
         bright_rows = np.where(row_sums > threshold)[0]
 
-        if len(bright_rows) < 3:
+        if len(bright_rows) < 5:
             return None, None, False
 
-        # Check for stripe pattern (alternating bright/dim)
+        # Check for stripe pattern (alternating bright/dim) — zebra crossings only
         gaps = np.diff(bright_rows)
-        stripe_pattern = np.any((gaps > 2) & (gaps < 25))
+        stripe_pattern = np.sum((gaps > 2) & (gaps < 25)) >= 2
 
-        if not stripe_pattern and len(bright_rows) < 5:
+        if not stripe_pattern:
+            return None, None, False
+
+        band_height = (bright_rows[-1] - bright_rows[0]) / roi.shape[0]
+        if band_height > 0.25:
             return None, None, False
 
         y_start = (int(h * 0.35) + bright_rows[0]) / h

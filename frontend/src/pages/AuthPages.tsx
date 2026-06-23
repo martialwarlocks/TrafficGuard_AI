@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Shield } from 'lucide-react'
 import { Button, Input, Card } from '@/components/ui'
@@ -11,6 +11,14 @@ export function LoginPage() {
   const [error, setError] = useState('')
   const { login, isLoading } = useAuthStore()
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const sessionExpired = searchParams.get('expired') === '1'
+
+  useEffect(() => {
+    if (sessionExpired) {
+      useAuthStore.getState().logout()
+    }
+  }, [sessionExpired])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -42,6 +50,11 @@ export function LoginPage() {
               <label className="text-sm text-muted mb-1 block">Password</label>
               <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
             </div>
+            {sessionExpired && (
+              <p className="text-warning text-sm bg-warning/10 border border-warning/30 rounded-lg px-3 py-2">
+                Your session expired. Please sign in again.
+              </p>
+            )}
             {error && <p className="text-danger text-sm">{error}</p>}
             <Button type="submit" className="w-full" disabled={isLoading}>
               {isLoading ? 'Signing in...' : 'Sign In'}

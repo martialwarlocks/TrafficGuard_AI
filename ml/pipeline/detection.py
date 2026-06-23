@@ -15,6 +15,9 @@ CLASS_NAMES = {
     8: "seatbelt",
     9: "no_seatbelt",
     10: "license_plate",
+    11: "traffic_light_red",
+    12: "traffic_light_green",
+    13: "traffic_light_yellow",
 }
 
 

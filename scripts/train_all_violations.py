@@ -20,6 +20,7 @@ from pathlib import Path
 VIOLATION_CLASSES = [
     "person", "bicycle", "car", "motorcycle", "bus", "truck",
     "helmet", "no_helmet", "seatbelt", "no_seatbelt", "license_plate",
+    "traffic_light_red", "traffic_light_green", "traffic_light_yellow",
 ]
 
 RECOMMENDED_DATASETS = {
@@ -54,11 +55,14 @@ names: {VIOLATION_CLASSES}
 def main():
     parser = argparse.ArgumentParser(description="Train TrafficGuard YOLO on all violation classes")
     parser.add_argument("--data", default="datasets/processed/data.yaml")
-    parser.add_argument("--epochs", type=int, default=100)
+    parser.add_argument("--epochs", type=int, default=80)
     parser.add_argument("--batch", type=int, default=16)
     parser.add_argument("--imgsz", type=int, default=640)
     parser.add_argument("--model", default="yolov8s.pt")
     parser.add_argument("--output", default="ml/models")
+    parser.add_argument("--patience", type=int, default=20, help="Early stopping patience (anti-overfit)")
+    parser.add_argument("--fraction", type=float, default=1.0, help="Fraction of train data (e.g. 0.3 for faster CPU runs)")
+    parser.add_argument("--name", default="trafficguard_v8_all_violations")
     parser.add_argument("--init-only", action="store_true", help="Only create dataset structure")
     args = parser.parse_args()
 
@@ -93,28 +97,44 @@ def main():
         batch=args.batch,
         imgsz=args.imgsz,
         project=args.output,
-        name="trafficguard_v8_all_violations",
-        patience=25,
+        name=args.name,
+        exist_ok=True,
+        fraction=args.fraction,
+        # Anti-overfitting: early stop, cosine LR, label smoothing, moderate aug
+        patience=args.patience,
         save=True,
-        augment=True,
-        mosaic=1.0,
-        mixup=0.15,
-        degrees=5.0,
-        translate=0.1,
-        scale=0.5,
+        val=True,
+        cos_lr=True,
+        label_smoothing=0.1,
+        weight_decay=0.0005,
+        warmup_epochs=5,
+        lrf=0.01,
+        close_mosaic=15,
+        mosaic=0.85,
+        mixup=0.08,
+        copy_paste=0.05,
+        degrees=8.0,
+        translate=0.08,
+        scale=0.45,
         fliplr=0.5,
         hsv_h=0.015,
-        hsv_s=0.7,
-        hsv_v=0.4,
+        hsv_s=0.5,
+        hsv_v=0.35,
+        erasing=0.15,
     )
 
-    best = Path(args.output) / "trafficguard_v8_all_violations" / "weights" / "best.pt"
-    dest = Path(args.output) / "yolov8s_traffic.pt"
+    run_dir = Path(args.output) / args.name
+    best = run_dir / "weights" / "best.pt"
+    if not best.exists():
+        alt = Path("runs/detect") / args.output / args.name / "weights" / "best.pt"
+        if alt.exists():
+            best = alt
+    dest = Path(args.output) / "yolov8_traffic.pt"
     if best.exists():
         import shutil
         shutil.copy2(best, dest)
         print(f"\nModel saved to {dest}")
-        print("Update YOLO_MODEL_PATH=ml/models/yolov8s_traffic.pt in .env")
+        print("Update YOLO_MODEL_PATH=ml/models/yolov8_traffic.pt in .env")
 
 
 if __name__ == "__main__":

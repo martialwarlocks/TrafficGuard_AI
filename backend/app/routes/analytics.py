@@ -72,24 +72,22 @@ async def get_analytics(
         {"type": str(row[0].value), "count": row[1]} for row in categories.all()
     ]
 
+    conf_bucket = func.floor(Violation.confidence * 10) / 10.0
     conf_dist = await db.execute(
-        select(
-            func.floor(Violation.confidence * 10) / 10,
-            func.count(Violation.id),
-        ).group_by(func.floor(Violation.confidence * 10) / 10)
+        select(conf_bucket.label("bucket"), func.count(Violation.id))
+        .group_by(conf_bucket)
     )
     confidence_distribution = [
-        {"bucket": float(row[0]), "count": row[1]} for row in conf_dist.all()
+        {"bucket": float(row[0] or 0), "count": row[1]} for row in conf_dist.all()
     ]
 
+    unc_bucket = func.floor(Violation.uncertainty * 10) / 10.0
     unc_dist = await db.execute(
-        select(
-            func.floor(Violation.uncertainty * 10) / 10,
-            func.count(Violation.id),
-        ).group_by(func.floor(Violation.uncertainty * 10) / 10)
+        select(unc_bucket.label("bucket"), func.count(Violation.id))
+        .group_by(unc_bucket)
     )
     uncertainty_distribution = [
-        {"bucket": float(row[0]), "count": row[1]} for row in unc_dist.all()
+        {"bucket": float(row[0] or 0), "count": row[1]} for row in unc_dist.all()
     ]
 
     officer_stats = await db.execute(
@@ -201,18 +199,19 @@ async def _trends_from_db(db: AsyncSession, hours: int, unit: str) -> list[dict]
     violations = result.scalars().all()
 
     if unit == "hour":
-        buckets = _generate_time_series(24, "hour")
-        bucket_map = {b["label"]: b for b in buckets}
+        n = min(24, max(1, hours))
+        buckets = _generate_time_series(n, "hour")
         for v in violations:
-            label = v.detected_at.strftime("%H:00")
-            if label not in bucket_map:
-                bucket_map[label] = {"label": label, "count": 0, "auto": 0, "review": 0}
-            bucket_map[label]["count"] += 1
-            if v.routing_decision == RoutingDecision.AUTO_PROCESS:
-                bucket_map[label]["auto"] += 1
-            elif v.routing_decision == RoutingDecision.HUMAN_REVIEW:
-                bucket_map[label]["review"] += 1
-        return list(bucket_map.values())
+            # Match bucket by hour offset from window start
+            hours_ago = int((datetime.utcnow() - v.detected_at).total_seconds() // 3600)
+            if 0 <= hours_ago < n:
+                idx = n - hours_ago - 1
+                buckets[idx]["count"] += 1
+                if v.routing_decision == RoutingDecision.AUTO_PROCESS:
+                    buckets[idx]["auto"] += 1
+                elif v.routing_decision == RoutingDecision.HUMAN_REVIEW:
+                    buckets[idx]["review"] += 1
+        return buckets
 
     if unit == "day":
         buckets = _generate_time_series(30, "day")

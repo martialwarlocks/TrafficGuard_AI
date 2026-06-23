@@ -11,6 +11,7 @@ import { EvidencePage } from '@/pages/EvidencePage'
 import { AnalyticsPage } from '@/pages/AnalyticsPage'
 import { DigitalTwinPage } from '@/pages/DigitalTwinPage'
 import { ModelMonitorPage } from '@/pages/ModelMonitorPage'
+import { LiveTestPage } from '@/pages/LiveTestPage'
 import { SettingsPage } from '@/pages/SettingsPage'
 import { useAuthStore } from '@/store'
 
@@ -39,6 +40,7 @@ function AppRoutes() {
       <Route path="/" element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
         <Route path="dashboard" element={<DashboardPage />} />
         <Route path="monitoring" element={<MonitoringPage />} />
+        <Route path="live-test" element={<LiveTestPage />} />
         <Route path="review" element={<ReviewPage />} />
         <Route path="evidence" element={<EvidencePage />} />
         <Route path="analytics" element={<AnalyticsPage />} />

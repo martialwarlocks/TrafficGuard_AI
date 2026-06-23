@@ -9,8 +9,10 @@ def detect_stop_line_violation(
 ) -> ViolationResult | None:
     """Detect stop line / crosswalk encroachment."""
     ctx = scene_context or {}
-    violators = ctx.get("vehicles_in_crosswalk", [])
+    if not ctx.get("crosswalk_detected"):
+        return None
 
+    violators = ctx.get("vehicles_in_crosswalk", [])
     if not violators:
         return None
 

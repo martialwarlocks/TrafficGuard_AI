@@ -2,7 +2,7 @@ import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import {
   LayoutDashboard, Monitor, ClipboardCheck, FileSearch, BarChart3,
-  Map, Cpu, Settings, LogOut, Shield, Bell, ChevronLeft,
+  Map, Cpu, Settings, LogOut, Shield, Bell, ChevronLeft, Video,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useAuthStore, useAppStore } from '@/store'
@@ -11,6 +11,7 @@ import { Badge } from './ui'
 const navItems = [
   { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
   { to: '/monitoring', icon: Monitor, label: 'Live Monitoring' },
+  { to: '/live-test', icon: Video, label: 'Webcam Test' },
   { to: '/review', icon: ClipboardCheck, label: 'Human Review' },
   { to: '/evidence', icon: FileSearch, label: 'Evidence' },
   { to: '/analytics', icon: BarChart3, label: 'Analytics' },

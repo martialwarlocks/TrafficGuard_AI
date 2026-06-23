@@ -54,11 +54,11 @@ VIOLATION_CATALOG = [
 
 VIOLATION_PRIORITY = [
     "red_light",
-    "stop_line",
     "wrong_side",
     "triple_riding",
     "helmet",
     "seatbelt",
+    "stop_line",
     "parking",
 ]
 

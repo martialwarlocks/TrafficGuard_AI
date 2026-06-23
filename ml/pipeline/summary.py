@@ -46,11 +46,12 @@ def infer_from_detections(
     ctx = scene_context or {}
     sig = signal_state or {}
 
-    # Priority 1: Signal violations (intersection context)
-    if sig.get("state") in ("red", "yellow") and (
-        ctx.get("vehicles_in_crosswalk") or ctx.get("vehicles_past_stop_line")
-    ):
-        violation_type = "red_light"
+    # Priority 1: Signal violations — require crosswalk evidence
+    if sig.get("state") in ("red", "yellow") and sig.get("confidence", 0) >= 0.45:
+        if ctx.get("vehicles_in_crosswalk"):
+            violation_type = "red_light"
+        elif ctx.get("crosswalk_detected") and ctx.get("vehicles_past_stop_line"):
+            violation_type = "red_light"
     elif ctx.get("vehicles_in_crosswalk") and ctx.get("crosswalk_detected"):
         violation_type = "stop_line"
 

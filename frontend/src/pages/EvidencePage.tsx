@@ -70,6 +70,9 @@ function EvidenceCard({ violationId, violation }: { violationId: number; violati
         <div className="text-center">
           <p className="text-xs text-muted">Plate</p>
           <p className="font-mono font-bold">{detail?.ocr_result?.text || violation.plate_number || 'N/A'}</p>
+          {violation.fine_amount > 0 && (
+            <p className="text-lg font-bold text-danger mt-2">₹{violation.fine_amount.toLocaleString('en-IN')}</p>
+          )}
         </div>
       </div>
     </Card>

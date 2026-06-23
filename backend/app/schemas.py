@@ -219,9 +219,12 @@ class AnalyzeResponse(BaseModel):
     processing_time_ms: float
     user_summary: Optional[dict] = None
     image_urls: Optional[dict] = None
+    annotated_image_b64: Optional[str] = None
     ocr_result: Optional[dict] = None
     traffic_signal: Optional[dict] = None
     scene_context: Optional[dict] = None
+    fine_amount: float = 0.0
+    legal_section: Optional[str] = None
 
 
 class ViolationDetailResponse(BaseModel):
